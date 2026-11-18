@@ -36,7 +36,7 @@ public class ServerItemSpawner : NetworkedObject
                 Logger.Error($"Custom item '{source.CustomItemName}' is not registered or failed to create, spawning {source.Item} instead.");
         }
 
-        _pickup ??= Pickup.Create(source.Item.ToItemType(), source.Position, rotation, source.Scale, false);
+        _pickup = Pickup.Create(source.Item.ToItemType(), source.Position, Quaternion.Euler(source.Rotation), source.Scale);
 
         if (_pickup is null)
         {
