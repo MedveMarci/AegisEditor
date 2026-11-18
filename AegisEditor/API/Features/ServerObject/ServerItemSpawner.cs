@@ -25,7 +25,7 @@ public class ServerItemSpawner : NetworkedObject
     public ServerItemSpawner(AegisItemSpawner source)
     {
         Source = source;
-        _pickup = Pickup.Create(source.Item.ToItemType(), source.Position, Quaternion.Euler(source.Rotation), source.Scale, false);
+        _pickup = Pickup.Create(source.Item.ToItemType(), source.Position, Quaternion.Euler(source.Rotation), source.Scale);
 
         if (_pickup is null)
         {
