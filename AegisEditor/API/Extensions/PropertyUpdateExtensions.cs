@@ -50,7 +50,7 @@ public static class PropertyUpdateExtensions
         PropertyUpdate.SpeakerIsSpatial => nameof(SpeakerToy.NetworkIsSpatial),
         PropertyUpdate.SpeakerVolume => nameof(SpeakerToy.NetworkVolume) ,
         PropertyUpdate.SpeakerMinDistance => nameof(SpeakerToy.NetworkMinDistance),
-        PropertyUpdate.SpeakerMaxDistance => nameof(SpeakerToy.NetworkMinDistance),
+        PropertyUpdate.SpeakerMaxDistance => nameof(SpeakerToy.NetworkMaxDistance),
         _ => throw new ArgumentOutOfRangeException(nameof(property), property, null),
     };
 }
