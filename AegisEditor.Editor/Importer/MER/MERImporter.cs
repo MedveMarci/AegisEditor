@@ -139,7 +139,7 @@ public sealed class MERImporter : Importer<SchematicObjectDataList>
     {
         GameObject go = new GameObject(block.Name);
         go.transform.SetParent(parent, false);
-        ImportContext.ApplyTransform(go.transform, block.Position, block.Rotation, null);
+        ImportContext.ApplyTransform(go.transform, block.Position, block.Rotation, block.Scale);
         context.TryAddAnimator(go, block.AnimatorName);
         return go.transform;
     }
