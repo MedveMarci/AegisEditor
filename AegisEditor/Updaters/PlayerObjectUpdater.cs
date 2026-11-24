@@ -194,7 +194,7 @@ public class PlayerObjectUpdater : ObjectUpdater
             parentId = (uint)changes[i].value;
             break;
         }
-
+        
         Type type = spawnable.Type.ToType();
         Vector3 position = spawnable.Position;
         bool billboard = spawnable is AegisText { billboard: true };

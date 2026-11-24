@@ -4,6 +4,7 @@ using System.Linq;
 using AegisEditor.API.Enum;
 using AegisEditor.API.Extensions;
 using AegisEditor.API.Features.Editor;
+using AegisEditor.API.Features.ServerSided;
 using AegisEditor.API.Features.Spawnable;
 using AegisEditor.API.Interfaces;
 using UnityEngine;
@@ -211,8 +212,14 @@ public class PrefabInfo(int id, BundleInfo bundle, string prefabName)
         Object.transform.SetPositionAndRotation(localPosition, rotation);
         Object.transform.SetParent(parent, true);
 
-        if (Object.TryGetComponent(out AegisSpawnable root))
-            root.NotifyClientParentChanged();
+        foreach (AegisSpawnable spawnable in Spawnables)
+        {
+            if (spawnable is not INetworked)
+                continue;
+
+            spawnable.RefreshClientParent();
+            spawnable.MarkClientDirty();
+        }
 
         return true;
     }

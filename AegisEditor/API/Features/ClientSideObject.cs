@@ -63,7 +63,7 @@ public abstract class ClientSideObject : NetworkedObject
         {
             uint parentId;
             if (AegisAPI.UseGameParenting)
-                parentId = GetParentNetId(parent);
+                parentId = parent != null ? GetParentNetId(parent) : source.GetClientParentNetId();
             else
                 parentId = source.CullingParent is { NetID: not 0 } culling ? culling.NetID : 0;
 

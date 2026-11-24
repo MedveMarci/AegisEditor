@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AegisEditor.API.Enum;
 using AegisEditor.API.Extensions;
 using AegisEditor.API.Features.ClientObject;
 using AegisEditor.API.Features.ServerObject;
@@ -8,6 +9,7 @@ using AegisEditor.API.Features.Spawnable;
 using AegisEditor.API.Interfaces;
 using AegisEditor.API.Interfaces.Network;
 using LabApi.Features.Wrappers;
+using UnityEngine;
 
 namespace AegisEditor.API.Features;
 
@@ -118,7 +120,11 @@ public static class ClientSideRegistry
         if (!Entries.TryGetValue(prefab, out Entry entry) || !entry.Spawned.Add(player))
             return;
 
-        ClientSideSpawner.Enqueue(player, entry.Objects, p => entry.Ready.Add(p));
+        ClientSideSpawner.Enqueue(player, entry.Objects, p =>
+        {
+            entry.Ready.Add(p);
+            Resync(prefab, entry, p);
+        });
     }
 
     /// <summary>
@@ -301,6 +307,46 @@ public static class ClientSideRegistry
     /// If objects of the type exist only on the client and can be updated live.
     /// </summary>
     public static bool IsClientSided(Type type) => ClientSided.Contains(type);
+    
+    private static void Resync(PrefabInfo prefab, Entry entry, Player player)
+    {
+        if (prefab.Spawnables == null || player.IsDestroyed)
+            return;
+
+        foreach (AegisSpawnable spawnable in prefab.Spawnables)
+        {
+            if (spawnable == null || spawnable is INotAToyButAToy || spawnable is not INetworked { NetID: not 0 } networked)
+                continue;
+
+            ClientSideObject sent = entry.Objects.OfType<ClientSideObject>().FirstOrDefault(o => o.NetId == networked.NetID);
+            if (sent == null)
+                continue;
+
+            Type type = spawnable.Type.ToType();
+
+            if (!spawnable.gameObject.isStatic)
+                player.SendFakeSyncVar(networked.NetID, type, "NetworkIsStatic", false);
+
+            uint parentId = spawnable.GetClientParentNetId();
+            spawnable.GetClientTransform(out Vector3 position, out Quaternion rotation, out Vector3 scale);
+
+            if (parentId == sent.ParentNetId && position == sent.SentPosition
+                                             && rotation == sent.SentRotation && scale == sent.SentScale)
+                continue;
+
+            if (parentId != sent.ParentNetId)
+            {
+                player.SendChangeParent(networked.NetID, parentId);
+            }
+
+            player.SendFakeSyncVar(networked.NetID, type, new List<(PropertyUpdate, object)>
+            {
+                (PropertyUpdate.Position, position),
+                (PropertyUpdate.Rotation, rotation),
+                (PropertyUpdate.Scale, scale)
+            });
+        }
+    }
 
     internal static void Refresh(AegisSpawnable spawnable)
     {

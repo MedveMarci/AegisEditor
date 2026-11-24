@@ -89,7 +89,9 @@ public class HierarchyCommand : ICommand
         }
         else if (spawnable.ClientParent == null)
         {
-            parent = "no parent, world values";
+            Transform target = spawnable.ClientParentTransform;
+            uint targetId = target != null && AegisAPI.GetExternalNetId != null ? AegisAPI.GetExternalNetId(target) : 0;
+            parent = $"unity parent={(spawnable.transform.parent != null ? spawnable.transform.parent.name : "none")}, client target={(target != null ? target.name : "none")} net={targetId}, world pos={Format(spawnable.transform.position)}";
         }
         else
         {
