@@ -48,6 +48,11 @@ public class AegisText : AegisSpawnable, INetworked, IPreCheckUseless
     /// If true and billboard is set, locks the Z axis rotation.
     /// </summary>
     public bool billboardLockZ;
+
+    /// <summary>
+    /// If true, instead of using the player's camera angle, uses the player's world position.
+    /// </summary>
+    public bool billboardPlayerPosition;
     
     /// <inheritdoc />
     public override void OnUpdate()
