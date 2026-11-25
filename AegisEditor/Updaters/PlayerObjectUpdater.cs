@@ -194,7 +194,7 @@ public class PlayerObjectUpdater : ObjectUpdater
             parentId = (uint)changes[i].value;
             break;
         }
-        
+
         Type type = spawnable.Type.ToType();
         Vector3 position = spawnable.Position;
         bool billboard = spawnable is AegisText { billboard: true };
@@ -215,7 +215,7 @@ public class PlayerObjectUpdater : ObjectUpdater
                 player.SendFakeSyncVar(networked.NetID, type, "NetworkIsStatic", false);
                 player.SendChangeParent(networked.NetID, parentId);
             }
-            
+
             UpdatingObjectEventArgs ev = new(player, spawnable, changes);
             ObjectUpdaterEventsHandler.OnUpdating(ev);
 
@@ -232,8 +232,6 @@ public class PlayerObjectUpdater : ObjectUpdater
                 Buffer.AddRange(changes);
                 Buffer.RemoveAll(x => x.propertyName == PropertyUpdate.Rotation);
 
-                Quaternion rotation = player.Camera.rotation;
-
                 if (!_lastRotation.TryGetValue(player, out Dictionary<AegisSpawnable, Quaternion> rotations))
                     _lastRotation[player] = rotations = new Dictionary<AegisSpawnable, Quaternion>();
 
@@ -242,21 +240,30 @@ public class PlayerObjectUpdater : ObjectUpdater
 
                 AegisText text = (spawnable as AegisText)!;
 
-                Vector3 direction = player.Camera.position - position;
+                Quaternion world = player.Camera.rotation;
 
-                if (direction.sqrMagnitude > 0.000001f)
+                if (text.billboardPlayerPosition)
                 {
-                    Vector3 euler = Quaternion.LookRotation(-direction).eulerAngles;
+                    Vector3 direction = player.Camera.position - position;
 
-                    Quaternion world = Quaternion.Euler(text.billboardLockX ? 0f : euler.x, text.billboardLockY ? 0f : euler.y, text.billboardLockZ ? 0f : euler.z);
-
-                    Quaternion local = parent ? Quaternion.Inverse(parent.rotation) * world : world;
-
-                    if (!rotations.TryGetValue(spawnable, out Quaternion last) || Quaternion.Angle(last, local) >= BillboardThreshold)
+                    if (direction.sqrMagnitude > 0.000001f)
                     {
-                        rotations[spawnable] = local;
-                        Buffer.Add((PropertyUpdate.Rotation, local));
+                        Vector3 euler = Quaternion.LookRotation(-direction).eulerAngles;
+                        world = Quaternion.Euler(text.billboardLockX ? 0f : euler.x, text.billboardLockY ? 0f : euler.y, text.billboardLockZ ? 0f : euler.z);
                     }
+                }
+                else
+                {
+                    Vector3 euler = world.eulerAngles;
+                    world = Quaternion.Euler(text.billboardLockX ? 0f : euler.x, text.billboardLockY ? 0f : euler.y, text.billboardLockZ ? 0f : euler.z);
+                }
+
+                Quaternion local = parent ? Quaternion.Inverse(parent.rotation) * world : world;
+
+                if (!rotations.TryGetValue(spawnable, out Quaternion last) || Quaternion.Angle(last, local) >= BillboardThreshold)
+                {
+                    rotations[spawnable] = local;
+                    Buffer.Add((PropertyUpdate.Rotation, local));
                 }
 
                 if (Buffer.Count == 0)
