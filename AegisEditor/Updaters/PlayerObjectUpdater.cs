@@ -242,20 +242,21 @@ public class PlayerObjectUpdater : ObjectUpdater
 
                 AegisText text = (spawnable as AegisText)!;
 
-                Quaternion world = rotation;
+                Vector3 direction = player.Camera.position - position;
 
-                if (text.billboardLockX || text.billboardLockY || text.billboardLockZ)
+                if (direction.sqrMagnitude > 0.000001f)
                 {
-                    Vector3 euler = rotation.eulerAngles;
-                    world = Quaternion.Euler(text.billboardLockX ? 0f : euler.x, text.billboardLockY ? 0f : euler.y, text.billboardLockZ ? 0f : euler.z);
-                }
+                    Vector3 euler = Quaternion.LookRotation(direction).eulerAngles;
 
-                Quaternion local = parent ? Quaternion.Inverse(parent.rotation) * world : world;
+                    Quaternion world = Quaternion.Euler(text.billboardLockX ? 0f : euler.x, text.billboardLockY ? 0f : euler.y, text.billboardLockZ ? 0f : euler.z );
 
-                if (!rotations.TryGetValue(spawnable, out Quaternion last) || Quaternion.Angle(last, local) >= BillboardThreshold)
-                {
-                    rotations[spawnable] = local;
-                    Buffer.Add((PropertyUpdate.Rotation, local));
+                    Quaternion local = parent ? Quaternion.Inverse(parent.rotation) * world : world;
+
+                    if (!rotations.TryGetValue(spawnable, out Quaternion last) || Quaternion.Angle(last, local) >= BillboardThreshold)
+                    {
+                        rotations[spawnable] = local;
+                        Buffer.Add((PropertyUpdate.Rotation, local));
+                    }
                 }
 
                 if (Buffer.Count == 0)
