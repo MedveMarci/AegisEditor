@@ -33,6 +33,21 @@ public class AegisText : AegisSpawnable, INetworked, IPreCheckUseless
     /// If true, rotation is marked dirty every update so the client keeps it facing the camera.
     /// </summary>
     public bool billboard;
+
+    /// <summary>
+    /// If true and billboard is set, locks the X axis rotation.
+    /// </summary>
+    public bool billboardLockX;
+    
+    /// <summary>
+    /// If true and billboard is set, locks the Y axis rotation.
+    /// </summary>
+    public bool billboardLockY;
+    
+    /// <summary>
+    /// If true and billboard is set, locks the Z axis rotation.
+    /// </summary>
+    public bool billboardLockZ;
     
     /// <inheritdoc />
     public override void OnUpdate()
