@@ -246,9 +246,9 @@ public class PlayerObjectUpdater : ObjectUpdater
 
                 if (direction.sqrMagnitude > 0.000001f)
                 {
-                    Vector3 euler = Quaternion.LookRotation(direction).eulerAngles;
+                    Vector3 euler = Quaternion.LookRotation(-direction).eulerAngles;
 
-                    Quaternion world = Quaternion.Euler(text.billboardLockX ? 0f : euler.x, text.billboardLockY ? 0f : euler.y, text.billboardLockZ ? 0f : euler.z );
+                    Quaternion world = Quaternion.Euler(text.billboardLockX ? 0f : euler.x, text.billboardLockY ? 0f : euler.y, text.billboardLockZ ? 0f : euler.z);
 
                     Quaternion local = parent ? Quaternion.Inverse(parent.rotation) * world : world;
 
