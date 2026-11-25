@@ -23,7 +23,7 @@ public class PlayerObjectUpdater : ObjectUpdater
     private readonly Dictionary<PrefabInfo, List<Player>> _receivers = new();
     private static readonly List<(PropertyUpdate propertyName, object value)> Buffer = new();
 
-    private readonly Dictionary<Player, Dictionary<AegisSpawnable, float>> _lastYaw = new();
+    private readonly Dictionary<Player, Dictionary<AegisSpawnable, Quaternion>> _lastRotation = new();
 
     /// <summary>
     /// Gets the active updater.
@@ -69,7 +69,7 @@ public class PlayerObjectUpdater : ObjectUpdater
             return false;
 
         players.Add(player);
-        _lastYaw.Remove(player);
+        _lastRotation.Remove(player);
         ClientSideRegistry.SpawnFor(prefab, player);
         ObjectUpdaterEventsHandler.OnAddedReceiver(new AddedReceiverEventArgs(prefab, player));
         return true;
@@ -90,7 +90,7 @@ public class PlayerObjectUpdater : ObjectUpdater
             return false;
 
         players.Remove(player);
-        _lastYaw.Remove(player);
+        _lastRotation.Remove(player);
         ClientSideRegistry.DestroyFor(prefab, player);
         ObjectUpdaterEventsHandler.OnRemovedReceiver(new RemovedReceiverEventArgs(prefab, player));
         return true;
@@ -103,7 +103,7 @@ public class PlayerObjectUpdater : ObjectUpdater
     {
         if (_receivers.TryGetValue(prefab, out List<Player> players))
             foreach (Player player in players)
-                _lastYaw.Remove(player);
+                _lastRotation.Remove(player);
 
         _receivers.Remove(prefab);
     }
@@ -198,7 +198,7 @@ public class PlayerObjectUpdater : ObjectUpdater
         Type type = spawnable.Type.ToType();
         Vector3 position = spawnable.Position;
         bool billboard = spawnable is AegisText { billboard: true };
-        Transform parent = AegisAPI.UseGameParenting ? spawnable.ClientSpaceParent : spawnable.transform.parent;
+        Transform parent = spawnable.ClientSpaceParent;
 
         for (int i = 0; i < players.Count; i++)
         {
@@ -232,21 +232,29 @@ public class PlayerObjectUpdater : ObjectUpdater
                 Buffer.AddRange(changes);
                 Buffer.RemoveAll(x => x.propertyName == PropertyUpdate.Rotation);
 
-                float yaw = player.Rotation.eulerAngles.y;
+                Quaternion rotation = player.Camera.rotation;
 
-                if (!_lastYaw.TryGetValue(player, out Dictionary<AegisSpawnable, float> yaws))
-                    _lastYaw[player] = yaws = new Dictionary<AegisSpawnable, float>();
+                if (!_lastRotation.TryGetValue(player, out Dictionary<AegisSpawnable, Quaternion> rotations))
+                    _lastRotation[player] = rotations = new Dictionary<AegisSpawnable, Quaternion>();
 
                 if (parentChanged)
-                    yaws.Remove(spawnable);
+                    rotations.Remove(spawnable);
 
-                if (!yaws.TryGetValue(spawnable, out float last)
-                    || Mathf.Abs(Mathf.DeltaAngle(last, yaw)) >= BillboardThreshold)
+                AegisText text = (spawnable as AegisText)!;
+
+                Quaternion world = rotation;
+
+                if (text.billboardLockX || text.billboardLockY || text.billboardLockZ)
                 {
-                    yaws[spawnable] = yaw;
+                    Vector3 euler = rotation.eulerAngles;
+                    world = Quaternion.Euler(text.billboardLockX ? 0f : euler.x, text.billboardLockY ? 0f : euler.y, text.billboardLockZ ? 0f : euler.z);
+                }
 
-                    Quaternion world = Quaternion.Euler(0f, yaw, 0f);
-                    Quaternion local = parent != null ? Quaternion.Inverse(parent.rotation) * world : world;
+                Quaternion local = parent ? Quaternion.Inverse(parent.rotation) * world : world;
+
+                if (!rotations.TryGetValue(spawnable, out Quaternion last) || Quaternion.Angle(last, local) >= BillboardThreshold)
+                {
+                    rotations[spawnable] = local;
                     Buffer.Add((PropertyUpdate.Rotation, local));
                 }
 
