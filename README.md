@@ -24,26 +24,10 @@ Aegis Editor is a schematic and prefab editor for SCP: Secret Laboratory servers
 # Installation
 
 ## Server Plugin
-
-1. Download `AegisEditor.dll` and `AegisEditor.API.dll` from the [releases page](https://github.com/NotZer0Two/AegisEditor/releases).
-2. Place `AegisEditor.API.dll` in the **dependencies** directory:
-    - Linux: `~/.config/SCP Secret Laboratory/LabAPI/dependencies/<port>/`
-    - Windows: `%appdata%/SCP Secret Laboratory/LabAPI/dependencies/<port>/`
-3. Place `AegisEditor.dll` in the **plugins** directory:
-    - Linux: `~/.config/SCP Secret Laboratory/LabAPI/plugins/<port>/`
-    - Windows: `%appdata%/SCP Secret Laboratory/LabAPI/plugins/<port>/`
-4. Restart the server.
+https://aegiseditor.gitbook.io/aegiseditor-docs/getting-started/install-scp-sl
 
 ## Unity Editor
-
-1. Create a HDRP project using Unity 2021.3.17f1 or later
-  - You can also try importing the package into an existing project
-2. Download a package from the [releases page](https://github.com/NotZer0Two/AegisEditor/releases).
-   - `it.pyyra.aegiseditor` contains SL assets
-   - `it.pyyra.aegiseditor.core` has assemblies only, no game prefabs
-3. Go to `Assets > Import Package > Custom Package` in the top menu bar
-4. Select the package you downloaded
-5. Click `Import` and wait
+https://aegiseditor.gitbook.io/aegiseditor-docs/getting-started/your-first-project
 
 # Contributing
 
